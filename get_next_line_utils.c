@@ -5,109 +5,103 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: juhur <juhur@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/11/30 16:58:42 by juhur             #+#    #+#             */
-/*   Updated: 2021/11/30 16:58:48 by juhur            ###   ########.fr       */
+/*   Created: 2021/11/25 16:33:46 by juhur             #+#    #+#             */
+/*   Updated: 2021/11/27 19:18:35 by juhur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdlib.h>
 #include "get_next_line.h"
 
-void	*new_node(int flag, int fd)
-{
-	t_index	*index;
-	t_data	*data;
+/*
+** strlen -- find length of string <string.h>
+*/
 
-	if (flag == NODE_INDEX)
-	{
-		index = malloc(sizeof(t_index));
-		if (!index)
-			return (NULL);
-		index->fd = fd;
-		index->cnt = 0;
-		index->len = 0;
-		index->data_head = NULL;
-		index->data_tail = NULL;
-		index->next = NULL;
-		index->pre = NULL;
-		return (index);
-	}
-	data = malloc(sizeof(t_data));
-	if (data == NULL)
+size_t	ft_strlen(const char *s)
+{
+	size_t	len;
+
+	if (!s)
+		return (0);
+	len = 0;
+	while (s[len] != '\0')
+		len++;
+	return (len);
+}
+
+/*
+** strndup -- save a copy of a string <string.h>
+*/
+
+char	*ft_strndup(const char *s1, size_t n)
+{
+	char	*string;
+	size_t	len;
+	size_t	idx;
+
+	len = ft_strlen(s1);
+	if (n < len)
+		len = n;
+	string = (char *)malloc(sizeof(char) * (len + 1));
+	if (!string)
 		return (NULL);
-	data->start = 0;
-	data->end = 0;
-	data->read = 0;
-	data->next = NULL;
-	return (data);
-}
-
-t_index	*find_index(int fd, t_fds *fds)
-{
-	t_index	*index;
-
-	index = fds->head;
-	while (index)
+	idx = 0;
+	while (idx < len)
 	{
-		if (index->fd == fd)
-			return (index);
-		index = index->next;
+		string[idx] = s1[idx];
+		idx++;
 	}
-	return (NULL);
+	string[idx] = '\0';
+	return (string);
 }
 
-int	clear_fds(t_fds *fds)
-{
-	t_index	*tmp_index;
-	t_data	*tmp_data;
+/*
+** Allocates (with malloc(3)) and returns a new string,
+** which is the result of the concatenation of ’s1’ and ’s2’.
+*/
 
-	while (fds->head)
+char	*ft_strexpand(char *s1, char *s2)
+{
+	char	*string;
+	size_t	idx;
+	size_t	len;
+
+	if (!s2)
+		return (NULL);
+	len = ft_strlen(s1) + ft_strlen(s2);
+	string = (char *)malloc(sizeof(char) * (len + 1));
+	if (!string)
+		return (NULL);
+	idx = 0;
+	while (s1 != NULL && s1[idx] != '\0')
 	{
-		while (fds->head->data_head)
-		{
-			tmp_data = fds->head->data_head;
-			fds->head->data_head = fds->head->data_head->next;
-			free(tmp_data);
-		}
-		tmp_index = fds->head;
-		fds->head = fds->head->next;
-		free(tmp_index);
+		string[idx] = s1[idx];
+		idx++;
 	}
-	fds->tail = NULL;
-	return (-1);
-}
-
-void	*ft_memcpy(void *dst, const void *src, size_t n)
-{
-	void	*ret;
-
-	ret = dst;
-	if (dst == src)
-		return (ret);
-	while (n--)
+	if (s1)
 	{
-		*(unsigned char *)dst = *(unsigned char *)src;
-		src++;
-		dst++;
+		free(s1);
+		s1 = NULL;
 	}
-	return (ret);
+	while (*s2 != '\0')
+		string[idx++] = *(s2++);
+	string[idx] = '\0';
+	return (string);
 }
 
-int	free_last(t_fds *fds, t_index **index, int fd_error)
+/*
+** strchr -- locate character in string <string.h>
+*/
+
+char	*ft_strchr(const char *s, int c)
 {
-	if (*index == NULL)
-		return (-1);
-	free((*index)->data_tail);
-	if (*index == fds->head)
-		fds->head = (*index)->next;
-	else
-		(*index)->pre->next = (*index)->next;
-	if (*index == fds->tail)
-		fds->tail = (*index)->pre;
-	else
-		(*index)->next->pre = (*index)->pre;
-	free(*index);
-	if (fd_error)
-		return (-1);
+	while (*s)
+	{
+		if (*s == (char)c)
+			return ((char *)s);
+		++s;
+	}
+	if (*s == (char)c)
+		return ((char *)s);
 	return (0);
 }

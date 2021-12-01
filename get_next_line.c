@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: juhur <juhur@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/11/30 16:56:35 by juhur             #+#    #+#             */
-/*   Updated: 2021/11/30 16:58:57 by juhur            ###   ########.fr       */
+/*   Created: 2021/11/25 16:33:10 by juhur             #+#    #+#             */
+/*   Updated: 2021/12/01 15:27:44 by juhur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,120 +14,79 @@
 #include <unistd.h>
 #include "get_next_line.h"
 
-int	start(int fd, t_fds *fds, t_index **index, char **line)
+char	*free_and_return_null(char **buf1)
 {
-	*index = NULL;
-	if (BUFFER_SIZE == 0 || line == NULL)
-		return (STATE_FD_ERROR);
-	*index = find_index(fd, fds);
-	if (*index == NULL)
+	if (buf1 && *buf1)
 	{
-		*index = new_node(NODE_INDEX, fd);
-		if (*index == NULL)
-			return (STATE_MALLOC_ERROR);
-		(*index)->nl_flag = 0;
-		if (fds->head == NULL && fds->tail == NULL)
-			fds->head = *index;
-		else
-		{
-			fds->tail->next = *index;
-			(*index)->pre = fds->tail;
-		}
-		fds->tail = *index;
-		return (STATE_NEW_READ);
+		free(*buf1);
+		*buf1 = NULL;
 	}
-	return (STATE_CHECK_NL);
+	return (NULL);
 }
 
-int	check_data_nl(t_index **index, char **line)
+char	*read_a_line(int fd, char *save_buf)
 {
-	(*index)->data_tail->end = (*index)->data_tail->start;
-	while ((*index)->data_tail->end < (*index)->data_tail->read)
+	char	read_buf[BUFFER_SIZE + 1];
+	ssize_t	read_len;
+
+	while (!ft_strchr(read_buf, '\n'))
 	{
-		if ((*index)->data_tail->str[(*index)->data_tail->end] == '\n')
-		{
-			(*index)->nl_flag = 1;
+		read_len = read(fd, read_buf, BUFFER_SIZE);
+		if (read_len == -1)
+			return (free_and_return_null(&save_buf));
+		if (read_len == 0)
 			break ;
-		}
-		(*index)->data_tail->end++;
+		read_buf[read_len] = '\0';
+		save_buf = ft_strexpand(save_buf, read_buf);
+		if (!save_buf)
+			return (free_and_return_null(&save_buf));
 	}
-	(*index)->len += (*index)->data_tail->end - (*index)->data_tail->start;
-	if ((*index)->nl_flag || (*index)->data_tail->read == 0)
-	{
-		*line = malloc(sizeof(char) * ((*index)->len) + 1);
-		if (*line == NULL)
-			return (STATE_MALLOC_ERROR);
-		return (STATE_TIDY);
-	}
-	return (STATE_NEW_READ);
+	return (save_buf);
 }
 
-int	new_read(t_index **index)
+char	*tidy_static_buf(char **save_buf, size_t trim_len)
 {
-	t_data	*new_data;
+	char	*string;
 
-	new_data = new_node(NODE_DATA, NOT_USE);
-	if (new_data == NULL)
-		return (STATE_MALLOC_ERROR);
-	new_data->read = read((*index)->fd, new_data->str, BUFFER_SIZE);
-	if ((*index)->cnt == 0)
-		(*index)->data_head = new_data;
-	else
-		(*index)->data_tail->next = new_data;
-	(*index)->data_tail = new_data;
-	(*index)->cnt++;
-	if (new_data->read == -1)
-		return (STATE_FD_ERROR);
-	return (STATE_CHECK_NL);
+	string = ft_strndup(*save_buf + trim_len, ft_strlen(*save_buf) - trim_len);
+	if (!string)
+		return (free_and_return_null(save_buf));
+	free(*save_buf);
+	*save_buf = NULL;
+	return (string);
 }
 
-int	tidy_str(t_fds *fds, t_index **index, char *line)
+char	*get_a_line(char **save_buf)
 {
-	t_data	*tmp;
+	char	*r_str;
+	size_t	r_len;
 
-	line[(*index)->len] = '\0';
-	while ((*index)->cnt)
-	{
-		tmp = (*index)->data_head;
-		ft_memcpy(line, tmp->str + tmp->start, tmp->end - tmp->start);
-		line += tmp->end - tmp->start;
-		if ((*index)->data_head == (*index)->data_tail)
-			break ;
-		(*index)->data_head = tmp->next;
-		free(tmp);
-		(*index)->cnt--;
-	}
-	(*index)->data_head->start = (*index)->data_head->end + 1;
-	if ((*index)->nl_flag)
-	{
-		(*index)->nl_flag = 0;
-		(*index)->len = 0;
-		return (1);
-	}
-	return (free_last(fds, index, 0));
+	r_len = ft_strlen(*save_buf) - ft_strlen(ft_strchr(*save_buf, '\n')) + 1;
+	r_str = ft_strndup(*save_buf, r_len);
+	if (!r_str)
+		return (free_and_return_null(save_buf));
+	*save_buf = tidy_static_buf(save_buf, r_len);
+	if (!(*save_buf))
+		return (free_and_return_null(save_buf));
+	return (r_str);
 }
 
-int	get_next_line(int fd, char **line)
+char	*get_next_line(int fd)
 {
-	static t_fds	fds;
-	t_state			state;
-	t_index			*index;
+	static char	*save_buf;
+	char		*r_str;
 
-	state = STATE_START;
-	while (1)
-	{
-		if (state == STATE_MALLOC_ERROR)
-			return (clear_fds(&fds));
-		else if (state == STATE_FD_ERROR)
-			return (free_last(&fds, &index, 1));
-		else if (state == STATE_START)
-			state = start(fd, &fds, &index, line);
-		else if (state == STATE_CHECK_NL)
-			state = check_data_nl(&index, line);
-		else if (state == STATE_NEW_READ)
-			state = new_read(&index);
-		else if (state == STATE_TIDY)
-			return (tidy_str(&fds, &index, *line));
-	}
-	return (-1);
+	save_buf = read_a_line(fd, save_buf);
+	if (!save_buf)
+		return (NULL);
+	if (ft_strchr(save_buf, '\n'))
+		return (get_a_line(&save_buf));
+	if (ft_strlen(save_buf) == 0)
+		return (free_and_return_null(&save_buf));
+	r_str = ft_strndup(save_buf, ft_strlen(save_buf));
+	free(save_buf);
+	save_buf = NULL;
+	if (!r_str)
+		return (NULL);
+	return (r_str);
 }

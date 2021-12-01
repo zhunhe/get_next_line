@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: juhur <juhur@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/11/30 16:57:20 by juhur             #+#    #+#             */
-/*   Updated: 2021/11/30 16:59:01 by juhur            ###   ########.fr       */
+/*   Created: 2021/11/25 16:33:24 by juhur             #+#    #+#             */
+/*   Updated: 2021/11/30 12:48:10 by juhur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,70 +15,21 @@
 
 # include <stddef.h>
 
-# ifdef BUFFER_SIZE
-#  if BUFFER_SIZE < 0
-#   undef BUFFER_SIZE
-#   define BUFFER_SIZE 0
-#  endif
-# else
-#  define BUFFER_SIZE 42
+# ifndef BUFFER_SIZE
+#  define BUFFER_SIZE   42
 # endif
 
-typedef enum e_state
-{
-	STATE_MALLOC_ERROR = -1,
-	STATE_FD_ERROR,
-	STATE_START,
-	STATE_CHECK_NL,
-	STATE_NEW_READ,
-	STATE_TIDY
-}				t_state;
+/*
+** get_next_line.c
+*/
+char	*get_next_line(int fd);
 
-enum e_node
-{
-	NODE_INDEX,
-	NODE_DATA,
-};
-
-# define NOT_USE -1
-
-typedef struct s_fds
-{
-	struct s_index	*head;
-	struct s_index	*tail;
-}				t_fds;
-
-typedef struct s_index
-{
-	int				fd;
-	int				cnt;
-	int				len;
-	int				nl_flag;
-	struct s_data	*data_head;
-	struct s_data	*data_tail;
-	struct s_index	*next;
-	struct s_index	*pre;
-}				t_index;
-
-typedef struct s_data
-{
-	char			str[BUFFER_SIZE];
-	int				start;
-	int				end;
-	int				read;
-	struct s_data	*next;
-}				t_data;
-
-void			*new_node(int flag, int fd);
-t_index			*find_index(int fd, t_fds *fds);
-int				clear_fds(t_fds *fds);
-void			*ft_memcpy(void *dst, const void *src, size_t n);
-int				free_last(t_fds *fds, t_index **index, int fd_error);
-
-int				start(int fd, t_fds *fds, t_index **index, char **line);
-int				check_data_nl(t_index **index, char **line);
-int				new_read(t_index **index);
-int				tidy_str(t_fds *fds, t_index **index, char *line);
-int				get_next_line(int fd, char **line);
+/*
+** get_next_line_utils.c
+*/
+size_t	ft_strlen(const char *s);
+char	*ft_strndup(const char *s1, size_t n);
+char	*ft_strexpand(char *s1, char *s2);
+char	*ft_strchr(const char *s, int c);
 
 #endif
