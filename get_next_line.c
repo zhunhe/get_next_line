@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include "get_next_line.h"
 
-char	*free_and_return_null(char **buf1)
+static char	*free_and_return_null(char **buf1)
 {
 	if (buf1 && *buf1)
 	{
@@ -24,7 +24,7 @@ char	*free_and_return_null(char **buf1)
 	return (NULL);
 }
 
-char	*read_a_line(int fd, char *save_buf)
+static char	*read_a_line(int fd, char *save_buf)
 {
 	char	read_buf[BUFFER_SIZE + 1];
 	ssize_t	read_len;
@@ -44,7 +44,7 @@ char	*read_a_line(int fd, char *save_buf)
 	return (save_buf);
 }
 
-char	*tidy_static_buf(char **save_buf, size_t trim_len)
+static char	*tidy_static_buf(char **save_buf, size_t trim_len)
 {
 	char	*string;
 
@@ -56,7 +56,7 @@ char	*tidy_static_buf(char **save_buf, size_t trim_len)
 	return (string);
 }
 
-char	*get_a_line(char **save_buf)
+static char	*get_a_line(char **save_buf)
 {
 	char	*r_str;
 	size_t	r_len;
