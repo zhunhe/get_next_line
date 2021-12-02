@@ -6,7 +6,7 @@
 /*   By: juhur <juhur@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/25 16:33:10 by juhur             #+#    #+#             */
-/*   Updated: 2021/12/01 15:27:44 by juhur            ###   ########.fr       */
+/*   Updated: 2021/12/02 13:20:45 by juhur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,10 @@
 #include <unistd.h>
 #include "get_next_line.h"
 
+/*
+** free_and_return_null() is a function that returns null
+** and frees parameter if it is allocated to memory.
+*/
 static char	*free_and_return_null(char **buf1)
 {
 	if (buf1 && *buf1)
@@ -24,6 +28,12 @@ static char	*free_and_return_null(char **buf1)
 	return (NULL);
 }
 
+/*
+** read_a_line() is a function that reads a string from fd
+** until it includes '\n' or reaches eof.
+** If the result of the read() function is an error(-1),
+** free the static variable from the memory and return NULL.
+*/
 static char	*read_a_line(int fd, char *save_buf)
 {
 	char	read_buf[BUFFER_SIZE + 1];
@@ -44,6 +54,10 @@ static char	*read_a_line(int fd, char *save_buf)
 	return (save_buf);
 }
 
+/*
+** tidy_static_buf() is a function that reallocates the rest of the string
+** except for the string to be returned.
+*/
 static char	*tidy_static_buf(char **save_buf, size_t trim_len)
 {
 	char	*string;
@@ -56,6 +70,9 @@ static char	*tidy_static_buf(char **save_buf, size_t trim_len)
 	return (string);
 }
 
+/*
+** get_a_line() is a function that returns a string including '\n'.
+*/
 static char	*get_a_line(char **save_buf)
 {
 	char	*r_str;
@@ -71,6 +88,11 @@ static char	*get_a_line(char **save_buf)
 	return (r_str);
 }
 
+/*
+** get_next_line() is a function that reads a data using fd and returns a line
+** include the '\n', except if it reached the eof and there is no '\n'.
+** return NULL if an error has occurred or there is nothing more to read.
+*/
 char	*get_next_line(int fd)
 {
 	static char	*save_buf;
