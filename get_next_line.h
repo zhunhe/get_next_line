@@ -15,8 +15,16 @@
 
 # include <stddef.h>
 
-# ifndef BUFFER_SIZE
-#  define BUFFER_SIZE   42
+/*
+** if BUFFER_SIZE is not natural number, set to BUFFER_SIZE integer 42.
+*/
+# ifdef BUFFER_SIZE
+#  if BUFFER_SIZE <= 0
+#   undef BUFFER_SIZE
+#   define BUFFER_SIZE 42
+#  endif
+# else
+#  define BUFFER_SIZE 42
 # endif
 
 /*
@@ -31,5 +39,4 @@ size_t	ft_strlen(const char *s);
 char	*ft_strndup(const char *s1, size_t n);
 char	*ft_strexpand(char *s1, char *s2);
 char	*ft_strchr(const char *s, int c);
-
 #endif
