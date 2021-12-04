@@ -6,7 +6,7 @@
 /*   By: juhur <juhur@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/25 16:33:24 by juhur             #+#    #+#             */
-/*   Updated: 2021/11/30 12:48:10 by juhur            ###   ########.fr       */
+/*   Updated: 2021/12/04 18:52:20 by juhur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,15 +16,15 @@
 # include <stddef.h>
 
 /*
-** if BUFFER_SIZE is not natural number, set to BUFFER_SIZE integer 42.
+** if BUFFER_SIZE is negative integer, set BUFFER_SIZE to 0.
 */
 # ifdef BUFFER_SIZE
-#  if BUFFER_SIZE <= 0
+#  if BUFFER_SIZE < 0
 #   undef BUFFER_SIZE
-#   define BUFFER_SIZE 42
+#   define BUFFER_SIZE	0
 #  endif
 # else
-#  define BUFFER_SIZE 42
+#  define BUFFER_SIZE	42
 # endif
 
 /*
