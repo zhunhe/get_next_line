@@ -14,33 +14,51 @@
 #include <unistd.h>
 #include "get_next_line.h"
 
+static ssize_t	read_a_line(int fd, char **backup)
+{
+	char		read_buf[BUFFER_SIZE + 1];
+	ssize_t		read_len;
+
+	while (*backup == NULL || ft_strchr(*backup, '\n') == NULL)
+	{
+		read_len = read(fd, read_buf, BUFFER_SIZE);
+		if (read_len <= 0)
+			break ;
+		read_buf[read_len] = '\0';
+		*backup = ft_strexpand(*backup, read_buf);
+		if (*backup == NULL)
+			break ;
+	}
+	return (read_len);
+}
+
 /*
 ** get_a_line() is a function that returns a string.
 */
-static char	*get_a_line(char **save_buf)
+static char	*get_a_line(char **backup)
 {
 	char	*line;
 	size_t	trim_len;
 	char	*trim;
 
-	if (ft_strchr(*save_buf, '\n') == NULL)
+	if (ft_strchr(*backup, '\n') == NULL)
 	{
-		line = ft_strndup(*save_buf, ft_strlen(*save_buf));
+		line = ft_strndup(*backup, ft_strlen(*backup));
 		if (line == NULL)
 			return (NULL);
-		free(*save_buf);
-		*save_buf = NULL;
+		free(*backup);
+		*backup = NULL;
 		return (line);
 	}
-	trim_len = ft_strchr(*save_buf, '\n') - *save_buf + 1;
-	line = ft_strndup(*save_buf, trim_len);
+	trim_len = ft_strchr(*backup, '\n') - *backup + 1;
+	line = ft_strndup(*backup, trim_len);
 	if (line == NULL)
 		return (NULL);
-	trim = ft_strndup(*save_buf + trim_len, ft_strlen(*save_buf) - trim_len);
+	trim = ft_strndup(*backup + trim_len, ft_strlen(*backup) - trim_len);
 	if (trim == NULL)
 		return (NULL);
-	free(*save_buf);
-	*save_buf = trim;
+	free(*backup);
+	*backup = trim;
 	return (line);
 }
 
@@ -51,27 +69,17 @@ static char	*get_a_line(char **save_buf)
 */
 char	*get_next_line(int fd)
 {
-	static char	*save_buf;
-	char		read_buf[BUFFER_SIZE + 1];
+	static char	*backup;
 	ssize_t		read_len;
 
-	while (1)
-	{
-		read_len = read(fd, read_buf, BUFFER_SIZE);
-		if (read_len <= 0)
-			break ;
-		read_buf[read_len] = '\0';
-		save_buf = ft_strexpand(save_buf, read_buf);
-		if (save_buf == NULL || ft_strchr(save_buf, '\n'))
-			break ;
-	}
-	if (read_len < 0 || save_buf == NULL)
+	read_len = read_a_line(fd, &backup);
+	if (read_len == -1 || backup == NULL)
 		return (NULL);
-	if (ft_strlen(save_buf) == 0)
+	if (ft_strlen(backup) == 0)
 	{
-		free(save_buf);
-		save_buf = NULL;
+		free(backup);
+		backup = NULL;
 		return (NULL);
 	}
-	return (get_a_line(&save_buf));
+	return (get_a_line(&backup));
 }
