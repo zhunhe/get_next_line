@@ -15,77 +15,33 @@
 #include "get_next_line.h"
 
 /*
-** free_and_return_null() is a function that returns null
-** and frees parameter if it is allocated to memory.
-*/
-static char	*free_and_return_null(char **buf1)
-{
-	if (buf1 && *buf1)
-	{
-		free(*buf1);
-		*buf1 = NULL;
-	}
-	return (NULL);
-}
-
-/*
-** read_a_line() is a function that reads a string from fd
-** until it includes '\n' or reaches eof.
-** If the result of the read() function is an error(-1),
-** free the static variable from the memory and return NULL.
-*/
-static char	*read_a_line(int fd, char *save_buf)
-{
-	char	read_buf[BUFFER_SIZE + 1];
-	ssize_t	read_len;
-
-	while (!ft_strchr(read_buf, '\n'))
-	{
-		read_len = read(fd, read_buf, BUFFER_SIZE);
-		if (read_len == -1)
-			return (free_and_return_null(&save_buf));
-		if (read_len == 0)
-			break ;
-		read_buf[read_len] = '\0';
-		save_buf = ft_strexpand(save_buf, read_buf);
-		if (!save_buf)
-			return (free_and_return_null(&save_buf));
-	}
-	return (save_buf);
-}
-
-/*
-** tidy_static_buf() is a function that reallocates the rest of the string
-** except for the string to be returned.
-*/
-static char	*tidy_static_buf(char **save_buf, size_t trim_len)
-{
-	char	*string;
-
-	string = ft_strndup(*save_buf + trim_len, ft_strlen(*save_buf) - trim_len);
-	if (!string)
-		return (free_and_return_null(save_buf));
-	free(*save_buf);
-	*save_buf = NULL;
-	return (string);
-}
-
-/*
-** get_a_line() is a function that returns a string including '\n'.
+** get_a_line() is a function that returns a string.
 */
 static char	*get_a_line(char **save_buf)
 {
-	char	*r_str;
-	size_t	r_len;
+	char	*line;
+	size_t	trim_len;
+	char	*trim;
 
-	r_len = ft_strlen(*save_buf) - ft_strlen(ft_strchr(*save_buf, '\n')) + 1;
-	r_str = ft_strndup(*save_buf, r_len);
-	if (!r_str)
-		return (free_and_return_null(save_buf));
-	*save_buf = tidy_static_buf(save_buf, r_len);
-	if (!(*save_buf))
-		return (free_and_return_null(save_buf));
-	return (r_str);
+	if (ft_strchr(*save_buf, '\n') == NULL)
+	{
+		line = ft_strndup(*save_buf, ft_strlen(*save_buf));
+		if (line == NULL)
+			return (NULL);
+		free(*save_buf);
+		*save_buf = NULL;
+		return (line);
+	}
+	trim_len = ft_strchr(*save_buf, '\n') - *save_buf + 1;
+	line = ft_strndup(*save_buf, trim_len);
+	if (line == NULL)
+		return (NULL);
+	trim = ft_strndup(*save_buf + trim_len, ft_strlen(*save_buf) - trim_len);
+	if (trim == NULL)
+		return (NULL);
+	free(*save_buf);
+	*save_buf = trim;
+	return (line);
 }
 
 /*
@@ -96,19 +52,26 @@ static char	*get_a_line(char **save_buf)
 char	*get_next_line(int fd)
 {
 	static char	*save_buf;
-	char		*r_str;
+	char		read_buf[BUFFER_SIZE + 1];
+	ssize_t		read_len;
 
-	save_buf = read_a_line(fd, save_buf);
-	if (!save_buf)
+	while (1)
+	{
+		read_len = read(fd, read_buf, BUFFER_SIZE);
+		if (read_len <= 0)
+			break ;
+		read_buf[read_len] = '\0';
+		save_buf = ft_strexpand(save_buf, read_buf);
+		if (save_buf == NULL || ft_strchr(save_buf, '\n'))
+			break ;
+	}
+	if (read_len < 0 || save_buf == NULL)
 		return (NULL);
-	if (ft_strchr(save_buf, '\n'))
-		return (get_a_line(&save_buf));
 	if (ft_strlen(save_buf) == 0)
-		return (free_and_return_null(&save_buf));
-	r_str = ft_strndup(save_buf, ft_strlen(save_buf));
-	free(save_buf);
-	save_buf = NULL;
-	if (!r_str)
+	{
+		free(save_buf);
+		save_buf = NULL;
 		return (NULL);
-	return (r_str);
+	}
+	return (get_a_line(&save_buf));
 }
