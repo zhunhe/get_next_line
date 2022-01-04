@@ -6,7 +6,7 @@
 /*   By: juhur <juhur@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/25 16:33:46 by juhur             #+#    #+#             */
-/*   Updated: 2022/01/03 15:37:32 by juhur            ###   ########.fr       */
+/*   Updated: 2022/01/04 12:34:43 by juhur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ static size_t	ft_strlcat(char *dst, const char *src, size_t dstsize)
 		return (ft_strlen(src) + dstsize);
 	idx = 0;
 	while ((dst_len < dstsize - 1)
-		&& (src[idx]) != '\0')
+		&& (src[idx] != '\0'))
 		dst[dst_len++] = src[idx++];
 	dst[dst_len] = '\0';
 	return (dst_len);
