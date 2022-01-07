@@ -19,6 +19,7 @@ static ssize_t	read_a_line(int fd, char **backup)
 	char		read_buf[BUFFER_SIZE + 1];
 	ssize_t		read_len;
 
+	read_len = 0;
 	while (*backup == NULL || ft_strchr(*backup, '\n') == NULL)
 	{
 		read_len = read(fd, read_buf, BUFFER_SIZE);
