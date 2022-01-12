@@ -6,7 +6,7 @@
 /*   By: juhur <juhur@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/25 16:33:10 by juhur             #+#    #+#             */
-/*   Updated: 2021/12/02 13:20:45 by juhur            ###   ########.fr       */
+/*   Updated: 2022/01/12 13:58:34 by juhur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,16 @@
 #include <unistd.h>
 #include "get_next_line.h"
 
+/*
+** read_a_line() is a function that reads a string from fd
+** until it includes '\n' or reaches eof.
+** If the result of the read() function is an error (-1),
+** return -1, otherwise return length of read buffer.
+*/
 static ssize_t	read_a_line(int fd, char **backup)
 {
-	char		read_buf[BUFFER_SIZE + 1];
-	ssize_t		read_len;
+	char	read_buf[BUFFER_SIZE + 1];
+	ssize_t	read_len;
 
 	read_len = 0;
 	while (*backup == NULL || ft_strchr(*backup, '\n') == NULL)
@@ -34,7 +40,7 @@ static ssize_t	read_a_line(int fd, char **backup)
 }
 
 /*
-** get_a_line() is a function that returns a string.
+** get_a_line() is a function that returns a string including '\n'.
 */
 static char	*get_a_line(char **backup)
 {
@@ -42,22 +48,17 @@ static char	*get_a_line(char **backup)
 	size_t	trim_len;
 	char	*trim;
 
-	if (ft_strchr(*backup, '\n') == NULL)
-	{
-		line = ft_strndup(*backup, ft_strlen(*backup));
-		if (line == NULL)
-			return (NULL);
-		free(*backup);
-		*backup = NULL;
-		return (line);
-	}
 	trim_len = ft_strchr(*backup, '\n') - *backup + 1;
 	line = ft_strndup(*backup, trim_len);
 	if (line == NULL)
 		return (NULL);
 	trim = ft_strndup(*backup + trim_len, ft_strlen(*backup) - trim_len);
 	if (trim == NULL)
+	{
+		free(line);
+		line = NULL;
 		return (NULL);
+	}
 	free(*backup);
 	*backup = trim;
 	return (line);
@@ -72,15 +73,23 @@ char	*get_next_line(int fd)
 {
 	static char	*backup;
 	ssize_t		read_len;
+	char		*line;
 
 	read_len = read_a_line(fd, &backup);
 	if (read_len == -1 || backup == NULL)
 		return (NULL);
+	if (ft_strchr(backup, '\n') != NULL)
+		return (get_a_line(&backup));
 	if (ft_strlen(backup) == 0)
 	{
 		free(backup);
 		backup = NULL;
 		return (NULL);
 	}
-	return (get_a_line(&backup));
+	line = ft_strndup(backup, ft_strlen(backup));
+	if (line == NULL)
+		return (NULL);
+	free(backup);
+	backup = NULL;
+	return (line);
 }
