@@ -1,0 +1,3 @@
+[submodule "42cursus"]
+	path = 42cursus
+	url = https://github.com/zhunhe/42cursus.git
